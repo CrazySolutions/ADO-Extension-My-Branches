@@ -1,0 +1,43 @@
+{
+  "manifestVersion": 1,
+  "id": "my-branches",
+  "name": "My Branches",
+  "version": "0.1.0",
+  "publisher": "your-publisher-id",
+  "description": "Shows all branches created by the logged-in user across the organization and within each project's repositories.",
+  "categories": ["Azure Repos"],
+  "targets": [
+    { "id": "Microsoft.VisualStudio.Services.Integration" }
+  ],
+  "scopes": ["vso.code"],
+  "contributions": [
+    {
+      "id": "org-hub",
+      "type": "ms.vss-web.hub",
+      "description": "My Branches at the organization/collection level",
+      "targets": ["ms.vss-web.collection-overview-hub-group"],
+      "properties": {
+        "name": "My Branches",
+        "order": 100,
+        "uri": "dist/org-hub/index.html"
+      }
+    },
+    {
+      "id": "repos-hub",
+      "type": "ms.vss-web.hub",
+      "description": "My Branches under Repos within a project",
+      "targets": ["ms.vss-code-web.code-hub-group"],
+      "properties": {
+        "name": "My Branches",
+        "order": 100,
+        "uri": "dist/repos-hub/index.html"
+      }
+    }
+  ],
+  "files": [
+    {
+      "path": "dist",
+      "addressable": true
+    }
+  ]
+}
