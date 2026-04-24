@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an Azure DevOps (ADO) extension named **My Branches** (package name: `my-branches`). It lets the logged-in user see all branches they created, using their session token as identity context. It targets both Azure DevOps Services (cloud) and Azure DevOps Server (on-prem) via the `Microsoft.VisualStudio.Services.Integration` target in the manifest.
+This is an Azure DevOps (ADO) extension named **My Branches** (package name: `my-branches`). It lets the logged-in user see all branches they created, using their session token as identity context. It targets both Azure DevOps Services (cloud) and Azure DevOps Server (on-prem) via `Microsoft.VisualStudio.Services` and `Microsoft.TeamFoundation.Server` in the manifest. Do not use `Microsoft.VisualStudio.Services.Integration` — that target is for third-party service integrations and requires a `getstarted` link.
 
 The extension contributes two hubs:
 
