@@ -60,7 +60,9 @@ The next CI run will produce `1.0.<commits-since-tag>`.
 
 ## Asset Constraints
 
-**SVG files are not supported in ADO extension packages.** The marketplace rejects any `.vsix` that contains an SVG. All icons and images referenced from `vss-extension.json` (including `icons.default` and hub contribution `icon` properties) must be PNG or JPG.
+**SVG files are not supported in ADO extension packages.** The marketplace rejects any `.vsix` that contains an SVG. All icons and images must be PNG or JPG.
+
+The `files` array in `vss-extension.json` includes the entire `images/` directory, so **every file placed there is bundled into the VSIX** — not just files referenced by the manifest. Never place an SVG anywhere inside `images/`.
 
 Always generate icons as PNG. The `images/hub-icon.png` and `images/logo.png` files are produced by the inline Node.js scripts in the git history — re-run those scripts if the source needs to change.
 
