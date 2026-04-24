@@ -3,14 +3,25 @@
   "id": "my-branches",
   "name": "My Branches",
   "version": "0.1.0",
-  "publisher": "your-publisher-id",
+  "publisher": "CrazySolutions",
   "description": "Shows all branches created by the logged-in user across the organization and within each project's repositories.",
+  "public": false,
   "categories": ["Azure Repos"],
+  "tags": ["git", "branches"],
+  "demands": ["api-version/5.1"],
+  "scopes": ["vso.code"],
   "targets": [
     { "id": "Microsoft.VisualStudio.Services" },
     { "id": "Microsoft.TeamFoundation.Server" }
   ],
-  "scopes": ["vso.code"],
+  "content": {
+    "details": {
+      "path": "overview.md"
+    },
+    "license": {
+      "path": "LICENSE"
+    }
+  },
   "contributions": [
     {
       "id": "org-hub",
