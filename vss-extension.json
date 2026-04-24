@@ -46,7 +46,7 @@
         "name": "My Branches",
         "order": 100,
         "uri": "dist/org-hub/index.html",
-        "icon": "images/hub-icon.svg"
+        "icon": "images/hub-icon.png"
       }
     },
     {
@@ -58,7 +58,7 @@
         "name": "My Branches",
         "order": 100,
         "uri": "dist/repos-hub/index.html",
-        "icon": "images/hub-icon.svg"
+        "icon": "images/hub-icon.png"
       }
     }
   ],

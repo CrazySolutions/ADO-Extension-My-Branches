@@ -58,6 +58,12 @@ git push origin v1.0
 
 The next CI run will produce `1.0.<commits-since-tag>`.
 
+## Asset Constraints
+
+**SVG files are not supported in ADO extension packages.** The marketplace rejects any `.vsix` that contains an SVG. All icons and images referenced from `vss-extension.json` (including `icons.default` and hub contribution `icon` properties) must be PNG or JPG.
+
+Always generate icons as PNG. The `images/hub-icon.png` and `images/logo.png` files are produced by the inline Node.js scripts in the git history — re-run those scripts if the source needs to change.
+
 ## Git Commit Messages
 
 Write commit messages in the imperative mood — phrase the subject as a command, as if completing the sentence "If applied, this commit will…":
