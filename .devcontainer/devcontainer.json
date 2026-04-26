@@ -1,6 +1,6 @@
 {
   "name": "Extension dev",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
   "postCreateCommand": "npm install -g @anthropic-ai/claude-code",
   "customizations": {
     "vscode": {
