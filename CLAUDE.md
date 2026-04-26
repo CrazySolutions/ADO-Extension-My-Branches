@@ -19,7 +19,7 @@ The publisher ID in `vss-extension.json` is **not a secret** — it is a public 
 
 ## Development Environment
 
-The project uses a Dev Container based on `mcr.microsoft.com/devcontainers/javascript-node:18`. Claude Code is installed globally inside the container via `npm install -g @anthropic-ai/claude-code`.
+The project uses a Dev Container based on `mcr.microsoft.com/devcontainers/javascript-node:22`. Claude Code is installed globally inside the container via `npm install -g @anthropic-ai/claude-code`.
 
 An `ANTHROPIC_API_KEY` secret is expected in the environment (configured via the devcontainer secrets block).
 
@@ -158,8 +158,12 @@ The vast majority of code must be covered by automated tests. Specifically:
 ```
 src/
   common/
-    branchService.ts   # Pure business logic — no SDK imports, fully unit-tested
+    branchService.ts   # Pure business logic — ownership, sort, filter; fully unit-tested
+    domUtils.ts        # DOM helpers — HTML escaping, row click handler attachment
+    gitService.ts      # ADO Git API calls — fetches refs and maps them to BranchDetail
     sdkClient.ts       # SDK init + API client factory (thin wiring layer)
+    styles.css         # Shared styles for both hubs
+    urlUtils.ts        # ADO URL builders for branch, repo branches, and project pages
   org-hub/
     index.html / index.ts   # Entry point for the org/collection hub
   repos-hub/
@@ -167,12 +171,14 @@ src/
 tests/
   unit/
     branchService.test.ts
+    gitService.test.ts
+    urlUtils.test.ts
   __mocks__/
     styleMock.js
 ```
 
 ### Key design rules
 
-- `branchService.ts` must remain free of SDK/API imports so it can be unit-tested without mocking the ADO runtime.
+- `branchService.ts` must remain free of runtime SDK/API imports so it can be unit-tested without mocking the ADO runtime. It may use `import type` from `gitService.ts` — type-only imports are erased at compile time and have no runtime effect.
 - New hubs are added by appending to the `hubs` array in `webpack.config.js` and registering a contribution in `vss-extension.json`.
 - Tests enforce a minimum **80% line coverage** threshold (`jest --coverage`).
