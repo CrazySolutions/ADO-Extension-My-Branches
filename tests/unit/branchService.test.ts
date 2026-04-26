@@ -1,5 +1,6 @@
 import {
   filterUserBranches,
+  filterBranches,
   isBranchOwnedByUser,
   toBranchInfo,
   shortBranchName,
@@ -133,6 +134,57 @@ function makeDetail(
 ): BranchDetail {
   return { name, repositoryId: 'id', repositoryName, projectName, lastCommitDate };
 }
+
+describe('filterBranches', () => {
+  const branches: BranchDetail[] = [
+    makeDetail('main', 'repo', 'proj'),
+    makeDetail('feature/login', 'repo', 'proj'),
+    makeDetail('feature/signup', 'repo', 'proj'),
+    makeDetail('hotfix/crash', 'repo', 'proj'),
+    makeDetail('release/1.0', 'repo', 'proj'),
+  ];
+
+  it('returns all branches when pattern is empty', () => {
+    expect(filterBranches(branches, '')).toHaveLength(5);
+  });
+
+  it('returns all branches when pattern is whitespace only', () => {
+    expect(filterBranches(branches, '   ')).toHaveLength(5);
+  });
+
+  it('does substring match when no wildcard is present', () => {
+    const result = filterBranches(branches, 'feature');
+    expect(result.map(b => b.name)).toEqual(['feature/login', 'feature/signup']);
+  });
+
+  it('is case-insensitive', () => {
+    expect(filterBranches(branches, 'FEATURE')).toHaveLength(2);
+  });
+
+  it('matches with trailing wildcard (prefix glob)', () => {
+    const result = filterBranches(branches, 'feature/*');
+    expect(result.map(b => b.name)).toEqual(['feature/login', 'feature/signup']);
+  });
+
+  it('matches with leading and trailing wildcards', () => {
+    const result = filterBranches(branches, '*fix*');
+    expect(result.map(b => b.name)).toEqual(['hotfix/crash']);
+  });
+
+  it('matches exact name without wildcard', () => {
+    expect(filterBranches(branches, 'main').map(b => b.name)).toEqual(['main']);
+  });
+
+  it('returns empty array when nothing matches', () => {
+    expect(filterBranches(branches, 'nonexistent')).toHaveLength(0);
+  });
+
+  it('does not mutate the original array', () => {
+    const original = [...branches];
+    filterBranches(branches, 'feature');
+    expect(branches).toEqual(original);
+  });
+});
 
 describe('sortBranches', () => {
   const old = new Date('2023-01-01');

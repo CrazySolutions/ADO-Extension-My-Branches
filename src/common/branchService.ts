@@ -64,6 +64,16 @@ export function sortBranches(
   });
 }
 
+export function filterBranches(branches: BranchDetail[], pattern: string): BranchDetail[] {
+  if (!pattern.trim()) return branches;
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  const regexStr = pattern.includes('*')
+    ? `^${escaped.replace(/\*/g, '.*')}$`
+    : escaped;
+  const regex = new RegExp(regexStr, 'i');
+  return branches.filter(b => regex.test(b.name));
+}
+
 export function filterUserBranches(
   branches: BranchRef[],
   repository: Repository,

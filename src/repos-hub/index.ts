@@ -3,7 +3,7 @@ import { getClient } from 'azure-devops-extension-api';
 import { GitRestClient } from 'azure-devops-extension-api/Git';
 import type { ILocationService, IHostNavigationService } from 'azure-devops-extension-api/Common/CommonServices';
 import { getUserBranchesInProject, BranchDetail } from '../common/gitService';
-import { formatTimeAgo, isStale, sortBranches, SortColumn, SortDirection } from '../common/branchService';
+import { formatTimeAgo, isStale, sortBranches, filterBranches, SortColumn, SortDirection } from '../common/branchService';
 import { escapeHtml, attachRowClickHandlers } from '../common/domUtils';
 import { branchUrl, repoBranchesUrl } from '../common/urlUtils';
 import '../common/styles.css';
@@ -18,29 +18,45 @@ function sortableHeader(label: string, column: SortColumn, sort: SortState): str
   return `<th class="mb-sortable" data-column="${column}" data-sort="${sortAttr}">${label}</th>`;
 }
 
-function renderTable(branches: BranchDetail[], collectionUri: string, sort: SortState): string {
+function renderRows(branches: BranchDetail[], collectionUri: string, filterPattern: string): string {
+  if (branches.length === 0) {
+    const msg = filterPattern
+      ? `No branches match "${escapeHtml(filterPattern)}"`
+      : 'No branches to display.';
+    return `<tr><td colspan="3" class="mb-no-results">${msg}</td></tr>`;
+  }
   const now = new Date();
+  return branches.map(b => {
+    const stale = isStale(b.lastCommitDate, now);
+    const updated = b.lastCommitDate ? formatTimeAgo(b.lastCommitDate, now) : '—';
+    const rowHref = branchUrl(collectionUri, b.projectName, b.repositoryName, b.name);
+    const repoHref = repoBranchesUrl(collectionUri, b.projectName, b.repositoryName);
+    return `
+      <tr class="mb-clickable-row" data-href="${escapeHtml(rowHref)}">
+        <td><a class="mb-branch-name" href="${escapeHtml(rowHref)}" target="_top">${escapeHtml(b.name)}</a></td>
+        <td><a class="mb-cell-link" href="${escapeHtml(repoHref)}" target="_top">${escapeHtml(b.repositoryName)}</a></td>
+        <td class="${stale ? 'mb-stale' : ''}">${escapeHtml(updated)}</td>
+      </tr>`;
+  }).join('');
+}
 
-  const rows = branches
-    .map(b => {
-      const stale = isStale(b.lastCommitDate, now);
-      const updated = b.lastCommitDate ? formatTimeAgo(b.lastCommitDate, now) : '—';
-      const rowHref = branchUrl(collectionUri, b.projectName, b.repositoryName, b.name);
-      const repoHref = repoBranchesUrl(collectionUri, b.projectName, b.repositoryName);
-      return `
-        <tr class="mb-clickable-row" data-href="${escapeHtml(rowHref)}">
-          <td><a class="mb-branch-name" href="${escapeHtml(rowHref)}" target="_top">${escapeHtml(b.name)}</a></td>
-          <td><a class="mb-cell-link" href="${escapeHtml(repoHref)}" target="_top">${escapeHtml(b.repositoryName)}</a></td>
-          <td class="${stale ? 'mb-stale' : ''}">${escapeHtml(updated)}</td>
-        </tr>`;
-    })
-    .join('');
+function countLabel(filtered: number, total: number, filterPattern: string): string {
+  return filterPattern && filtered !== total ? `${filtered} of ${total}` : String(filtered);
+}
 
+function renderTable(
+  branches: BranchDetail[],
+  totalCount: number,
+  collectionUri: string,
+  sort: SortState,
+  filterPattern: string
+): string {
   return `
     <div class="mb-header">
       <h1>My Branches</h1>
-      <span class="mb-count">${branches.length}</span>
+      <span class="mb-count">${countLabel(branches.length, totalCount, filterPattern)}</span>
     </div>
+    <input class="mb-filter-input" type="text" placeholder="Filter branches… (* = wildcard)" value="${escapeHtml(filterPattern)}" aria-label="Filter branches">
     <table class="mb-table">
       <thead>
         <tr>
@@ -49,7 +65,7 @@ function renderTable(branches: BranchDetail[], collectionUri: string, sort: Sort
           ${sortableHeader('Last updated', 'lastCommitDate', sort)}
         </tr>
       </thead>
-      <tbody>${rows}</tbody>
+      <tbody>${renderRows(branches, collectionUri, filterPattern)}</tbody>
     </table>`;
 }
 
@@ -82,10 +98,28 @@ async function init(): Promise<void> {
 
     const navigationService = await SDK.getService<IHostNavigationService>('ms.vss-features.host-navigation-service');
     const sort: SortState = { column: 'lastCommitDate', direction: 'asc' };
+    let filterPattern = '';
+
+    function applyAndRenderRows(): void {
+      const filtered = filterBranches(branches, filterPattern);
+      const sorted = sortBranches(filtered, sort.column, sort.direction);
+      container.querySelector('tbody')!.innerHTML = renderRows(sorted, collectionUri, filterPattern);
+      container.querySelector('.mb-count')!.textContent = countLabel(sorted.length, branches.length, filterPattern);
+      attachRowClickHandlers(container, url => navigationService.navigate(url));
+    }
 
     function render(): void {
-      container.innerHTML = renderTable(sortBranches(branches, sort.column, sort.direction), collectionUri, sort);
+      const filtered = filterBranches(branches, filterPattern);
+      const sorted = sortBranches(filtered, sort.column, sort.direction);
+      container.innerHTML = renderTable(sorted, branches.length, collectionUri, sort, filterPattern);
       attachRowClickHandlers(container, url => navigationService.navigate(url));
+
+      container.querySelector<HTMLInputElement>('.mb-filter-input')!
+        .addEventListener('input', e => {
+          filterPattern = (e.target as HTMLInputElement).value;
+          applyAndRenderRows();
+        });
+
       container.querySelectorAll<HTMLElement>('.mb-sortable').forEach(th => {
         th.addEventListener('click', () => {
           const column = th.dataset.column as SortColumn;

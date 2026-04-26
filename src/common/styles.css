@@ -48,6 +48,32 @@ body {
   font-size: 14px;
 }
 
+.mb-filter-input {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 12px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1f1f1f;
+  background: #ffffff;
+  border: 1px solid #8a8886;
+  border-radius: 2px;
+  outline: none;
+}
+
+.mb-filter-input:focus {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 1px #0078d4;
+}
+
+.mb-no-results {
+  padding: 20px 12px;
+  color: #605e5c;
+  font-style: italic;
+}
+
 .mb-table {
   width: 100%;
   border-collapse: collapse;
