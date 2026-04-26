@@ -74,10 +74,29 @@ body {
   background: #f3f2f1;
 }
 
+.mb-clickable-row {
+  cursor: pointer;
+}
+
 .mb-branch-name {
   font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
   font-size: 13px;
   color: #0078d4;
+  text-decoration: none;
+}
+
+.mb-branch-name:hover {
+  text-decoration: underline;
+}
+
+.mb-cell-link {
+  color: #1f1f1f;
+  text-decoration: none;
+}
+
+.mb-cell-link:hover {
+  color: #0078d4;
+  text-decoration: underline;
 }
 
 .mb-stale {
