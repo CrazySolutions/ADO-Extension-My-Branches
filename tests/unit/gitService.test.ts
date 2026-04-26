@@ -103,6 +103,21 @@ describe('getUserBranchesInProject', () => {
     const result = await getUserBranchesInProject(gitClient, 'my-project', USER);
     expect(result).toHaveLength(0);
   });
+
+  it('skips repos that are missing an id or name', async () => {
+    const gitClient = makeMockGitClient({
+      getRepositories: jest.fn().mockResolvedValue([
+        makeRepo('r1', 'repo-a'),
+        { id: undefined, name: 'no-id' },
+        { id: 'r3', name: undefined },
+      ]),
+      getRefs: jest.fn().mockResolvedValue([makeRef('refs/heads/feature/x', USER)]),
+    });
+
+    const result = await getUserBranchesInProject(gitClient, 'my-project', USER);
+    expect(result).toHaveLength(1);
+    expect(result[0].repositoryName).toBe('repo-a');
+  });
 });
 
 describe('getUserBranchesAcrossOrg', () => {
@@ -124,5 +139,20 @@ describe('getUserBranchesAcrossOrg', () => {
 
     const result = await getUserBranchesAcrossOrg(gitClient, coreClient, USER);
     expect(result).toHaveLength(0);
+  });
+
+  it('skips projects that are missing a name', async () => {
+    const gitClient = makeMockGitClient({
+      getRepositories: jest.fn().mockResolvedValue([makeRepo('r1', 'repo-a')]),
+      getRefs: jest.fn().mockResolvedValue([makeRef('refs/heads/feature/x', USER)]),
+    });
+    const coreClient = makeMockCoreClient([
+      makeProject('project-a'),
+      { id: 'p2', name: undefined } as unknown as TeamProjectReference,
+    ]);
+
+    const result = await getUserBranchesAcrossOrg(gitClient, coreClient, USER);
+    expect(result).toHaveLength(1);
+    expect(result[0].projectName).toBe('project-a');
   });
 });

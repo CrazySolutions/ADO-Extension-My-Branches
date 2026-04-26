@@ -65,7 +65,9 @@ export async function getUserBranchesInProject(
 ): Promise<BranchDetail[]> {
   const repos = await gitClient.getRepositories(projectName);
   const results = await Promise.all(
-    repos.map(repo => getUserBranchesInRepo(gitClient, repo.id!, repo.name!, projectName, userUniqueName))
+    repos
+      .filter((repo): repo is typeof repo & { id: string; name: string } => Boolean(repo.id && repo.name))
+      .map(repo => getUserBranchesInRepo(gitClient, repo.id, repo.name, projectName, userUniqueName))
   );
   return results.flat();
 }
@@ -77,7 +79,9 @@ export async function getUserBranchesAcrossOrg(
 ): Promise<BranchDetail[]> {
   const projects = await coreClient.getProjects();
   const results = await Promise.all(
-    projects.map(project => getUserBranchesInProject(gitClient, project.name!, userUniqueName))
+    projects
+      .filter((project): project is typeof project & { name: string } => Boolean(project.name))
+      .map(project => getUserBranchesInProject(gitClient, project.name, userUniqueName))
   );
   return results.flat();
 }
