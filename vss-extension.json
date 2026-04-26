@@ -44,7 +44,7 @@
       "targets": ["ms.vss-tfs-web.suite-home-pivots"],
       "properties": {
         "name": "My Branches",
-        "order": 100,
+        "order": 9999,
         "uri": "dist/org-hub/index.html"
       }
     },
