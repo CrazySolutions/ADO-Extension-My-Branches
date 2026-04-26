@@ -55,7 +55,7 @@ jobs:
         run: npx tfx extension create --manifest-globs vss-extension.json --no-prompt
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: my-branches-${{ env.VERSION }}
           path: '*.vsix'
