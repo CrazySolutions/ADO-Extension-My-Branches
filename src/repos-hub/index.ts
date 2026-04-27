@@ -1,7 +1,6 @@
 import * as SDK from 'azure-devops-extension-sdk';
-import { getClient } from 'azure-devops-extension-api';
-import { GitRestClient } from 'azure-devops-extension-api/Git';
-import type { ILocationService, IHostNavigationService } from 'azure-devops-extension-api/Common/CommonServices';
+import type { ILocationService, IHostNavigationService, IProjectPageService } from 'azure-devops-extension-api/Common/CommonServices';
+import { createAdoGitClient } from '../common/sdkClient';
 import { getUserBranchesInProject, BranchDetail } from '../common/gitService';
 import { formatTimeAgo, isStale, sortBranches, filterBranches, SortColumn, SortDirection } from '../common/branchService';
 import { escapeHtml, attachRowClickHandlers } from '../common/domUtils';
@@ -78,8 +77,9 @@ async function init(): Promise<void> {
 
   try {
     const user = SDK.getUser();
-    const pageContext = SDK.getPageContext();
-    const projectName = pageContext.webContext.project?.name;
+    const projectService = await SDK.getService<IProjectPageService>('ms.vss-tfs-web.tfs-page-data-service');
+    const project = await projectService.getProject();
+    const projectName = project?.name;
 
     if (!projectName) {
       container.innerHTML = '<div class="mb-error">Could not determine the current project.</div>';
@@ -88,7 +88,7 @@ async function init(): Promise<void> {
 
     const locationService = await SDK.getService<ILocationService>('ms.vss-features.location-service');
     const collectionUri = await locationService.getServiceLocation();
-    const gitClient = getClient(GitRestClient);
+    const gitClient = createAdoGitClient();
     const branches = await getUserBranchesInProject(gitClient, projectName, user.name);
 
     if (branches.length === 0) {

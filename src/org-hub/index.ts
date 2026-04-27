@@ -1,8 +1,6 @@
 import * as SDK from 'azure-devops-extension-sdk';
-import { getClient } from 'azure-devops-extension-api';
-import { GitRestClient } from 'azure-devops-extension-api/Git';
-import { CoreRestClient } from 'azure-devops-extension-api/Core';
 import type { ILocationService, IHostNavigationService } from 'azure-devops-extension-api/Common/CommonServices';
+import { createAdoGitClient, createAdoCoreClient } from '../common/sdkClient';
 import { getUserBranchesAcrossOrg, BranchDetail } from '../common/gitService';
 import { formatTimeAgo, isStale, sortBranches, filterBranches, SortColumn, SortDirection } from '../common/branchService';
 import { escapeHtml, attachRowClickHandlers } from '../common/domUtils';
@@ -84,8 +82,8 @@ async function init(): Promise<void> {
     const user = SDK.getUser();
     const locationService = await SDK.getService<ILocationService>('ms.vss-features.location-service');
     const collectionUri = await locationService.getServiceLocation();
-    const gitClient = getClient(GitRestClient);
-    const coreClient = getClient(CoreRestClient);
+    const gitClient = createAdoGitClient();
+    const coreClient = createAdoCoreClient();
 
     const branches = await getUserBranchesAcrossOrg(gitClient, coreClient, user.name);
 

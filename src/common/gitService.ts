@@ -1,6 +1,20 @@
-import type { GitRestClient, GitRef } from 'azure-devops-extension-api/Git';
-import type { CoreRestClient } from 'azure-devops-extension-api/Core';
 import { shortBranchName } from './branchService';
+
+export interface GitRef {
+  name: string;
+  objectId: string;
+  creator?: { uniqueName?: string };
+}
+
+export interface GitClient {
+  getRefs(repoId: string, project: string, filter: string): Promise<GitRef[]>;
+  getCommit(commitId: string, repoId: string, project: string): Promise<{ author?: { date?: Date } }>;
+  getRepositories(project: string): Promise<Array<{ id?: string; name?: string }>>;
+}
+
+export interface CoreClient {
+  getProjects(): Promise<Array<{ name?: string }>>;
+}
 
 export interface BranchDetail {
   name: string;
@@ -10,9 +24,8 @@ export interface BranchDetail {
   lastCommitDate: Date | undefined;
 }
 
-// Fetches refs for a single repo and filters to those created by the given user.
 async function getUserRefsInRepo(
-  gitClient: GitRestClient,
+  gitClient: GitClient,
   repoId: string,
   projectName: string,
   userUniqueName: string
@@ -23,9 +36,8 @@ async function getUserRefsInRepo(
   );
 }
 
-// Fetches the author date of the commit that a ref's objectId points to.
 async function getCommitDate(
-  gitClient: GitRestClient,
+  gitClient: GitClient,
   objectId: string,
   repoId: string,
   projectName: string
@@ -39,7 +51,7 @@ async function getCommitDate(
 }
 
 export async function getUserBranchesInRepo(
-  gitClient: GitRestClient,
+  gitClient: GitClient,
   repoId: string,
   repoName: string,
   projectName: string,
@@ -59,29 +71,29 @@ export async function getUserBranchesInRepo(
 }
 
 export async function getUserBranchesInProject(
-  gitClient: GitRestClient,
+  gitClient: GitClient,
   projectName: string,
   userUniqueName: string
 ): Promise<BranchDetail[]> {
   const repos = await gitClient.getRepositories(projectName);
   const results = await Promise.all(
     repos
-      .filter((repo): repo is typeof repo & { id: string; name: string } => Boolean(repo.id && repo.name))
-      .map(repo => getUserBranchesInRepo(gitClient, repo.id, repo.name, projectName, userUniqueName))
+      .filter((repo): repo is { id: string; name: string } => Boolean(repo.id && repo.name))
+      .map(repo => getUserBranchesInRepo(gitClient, repo.id, repo.name, projectName, userUniqueName).catch(() => [] as BranchDetail[]))
   );
   return results.flat();
 }
 
 export async function getUserBranchesAcrossOrg(
-  gitClient: GitRestClient,
-  coreClient: CoreRestClient,
+  gitClient: GitClient,
+  coreClient: CoreClient,
   userUniqueName: string
 ): Promise<BranchDetail[]> {
   const projects = await coreClient.getProjects();
   const results = await Promise.all(
     projects
-      .filter((project): project is typeof project & { name: string } => Boolean(project.name))
-      .map(project => getUserBranchesInProject(gitClient, project.name, userUniqueName))
+      .filter((project): project is { name: string } => Boolean(project.name))
+      .map(project => getUserBranchesInProject(gitClient, project.name, userUniqueName).catch(() => [] as BranchDetail[]))
   );
   return results.flat();
 }
