@@ -1,5 +1,4 @@
-import type { GitRestClient, GitRef, GitCommit, GitRepository } from 'azure-devops-extension-api/Git';
-import type { CoreRestClient, TeamProjectReference } from 'azure-devops-extension-api/Core';
+import type { GitRef, GitClient, CoreClient } from '../../src/common/gitService';
 import {
   getUserBranchesInRepo,
   getUserBranchesInProject,
@@ -9,38 +8,34 @@ import {
 const USER = 'alice@example.com';
 
 function makeRef(name: string, uniqueName: string, objectId = 'abc123'): GitRef {
-  return {
-    name,
-    objectId,
-    creator: { uniqueName, displayName: 'Alice', id: '' },
-  } as unknown as GitRef;
+  return { name, objectId, creator: { uniqueName } };
 }
 
-function makeCommit(date: Date): GitCommit {
-  return { author: { date, name: 'Alice', email: USER } } as unknown as GitCommit;
+function makeCommit(date: Date): { author?: { date?: Date } } {
+  return { author: { date } };
 }
 
-function makeRepo(id: string, name: string): GitRepository {
-  return { id, name } as unknown as GitRepository;
+function makeRepo(id: string, name: string): { id: string; name: string } {
+  return { id, name };
 }
 
-function makeProject(name: string): TeamProjectReference {
-  return { name, id: name } as unknown as TeamProjectReference;
+function makeProject(name: string): { name: string } {
+  return { name };
 }
 
 const COMMIT_DATE = new Date('2024-03-10T10:00:00Z');
 
-function makeMockGitClient(overrides: Partial<Record<string, jest.Mock>> = {}): GitRestClient {
+function makeMockGitClient(overrides: Partial<Record<string, jest.Mock>> = {}): GitClient {
   return {
     getRefs: jest.fn(),
     getCommit: jest.fn().mockResolvedValue(makeCommit(COMMIT_DATE)),
     getRepositories: jest.fn(),
     ...overrides,
-  } as unknown as GitRestClient;
+  };
 }
 
-function makeMockCoreClient(projects: TeamProjectReference[]): CoreRestClient {
-  return { getProjects: jest.fn().mockResolvedValue(projects) } as unknown as CoreRestClient;
+function makeMockCoreClient(projects: Array<{ name?: string }>): CoreClient {
+  return { getProjects: jest.fn().mockResolvedValue(projects) };
 }
 
 describe('getUserBranchesInRepo', () => {
@@ -118,6 +113,19 @@ describe('getUserBranchesInProject', () => {
     expect(result).toHaveLength(1);
     expect(result[0].repositoryName).toBe('repo-a');
   });
+
+  it('skips a repo that throws and returns branches from others', async () => {
+    const gitClient = makeMockGitClient({
+      getRepositories: jest.fn().mockResolvedValue([makeRepo('r1', 'repo-a'), makeRepo('r2', 'repo-b')]),
+      getRefs: jest.fn()
+        .mockRejectedValueOnce(new Error('TF401019'))
+        .mockResolvedValueOnce([makeRef('refs/heads/feature/y', USER)]),
+    });
+
+    const result = await getUserBranchesInProject(gitClient, 'my-project', USER);
+    expect(result).toHaveLength(1);
+    expect(result[0].repositoryName).toBe('repo-b');
+  });
 });
 
 describe('getUserBranchesAcrossOrg', () => {
@@ -148,11 +156,25 @@ describe('getUserBranchesAcrossOrg', () => {
     });
     const coreClient = makeMockCoreClient([
       makeProject('project-a'),
-      { id: 'p2', name: undefined } as unknown as TeamProjectReference,
+      { name: undefined },
     ]);
 
     const result = await getUserBranchesAcrossOrg(gitClient, coreClient, USER);
     expect(result).toHaveLength(1);
     expect(result[0].projectName).toBe('project-a');
+  });
+
+  it('skips a project that throws and returns branches from others', async () => {
+    const gitClient = makeMockGitClient({
+      getRepositories: jest.fn()
+        .mockRejectedValueOnce(new Error('TF401019'))
+        .mockResolvedValueOnce([makeRepo('r1', 'repo-a')]),
+      getRefs: jest.fn().mockResolvedValue([makeRef('refs/heads/feature/x', USER)]),
+    });
+    const coreClient = makeMockCoreClient([makeProject('project-a'), makeProject('project-b')]);
+
+    const result = await getUserBranchesAcrossOrg(gitClient, coreClient, USER);
+    expect(result).toHaveLength(1);
+    expect(result[0].projectName).toBe('project-b');
   });
 });
