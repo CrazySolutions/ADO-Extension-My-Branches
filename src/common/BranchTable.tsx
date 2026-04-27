@@ -100,7 +100,6 @@ export function BranchTable({ branches, collectionUri, showProjectColumn, onNavi
         renderCell: (rowIndex, columnIndex, tableColumn, item) => (
           <SimpleTableCell key={`name-${rowIndex}`} columnIndex={columnIndex} tableColumn={tableColumn}>
             <Link
-              className="mb-branch-name"
               href={branchUrl(collectionUri, item.projectName, item.repositoryName, item.name)}
               target="_top"
               onClick={stopPropagation}
