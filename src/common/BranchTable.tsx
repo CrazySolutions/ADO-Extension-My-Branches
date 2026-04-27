@@ -12,6 +12,7 @@ import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { TextField } from 'azure-devops-ui/TextField';
 import { ZeroData } from 'azure-devops-ui/ZeroData';
 
+import 'azure-devops-ui/Core/override.css';
 import 'azure-devops-ui/Core/core.css';
 import 'azure-devops-ui/Components/Card/Card.css';
 import 'azure-devops-ui/Components/Header/Header.css';
@@ -177,22 +178,24 @@ export function BranchTable({ branches, collectionUri, showProjectColumn, onNavi
   return (
     <div className="flex-grow flex-column">
       <Header
-        title="My Branches"
-        titleSize={TitleSize.Large}
-      />
-      <div className="page-content flex-grow">
-        <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
-          <div className="flex-row flex-center rhythm-horizontal-8 padding-8">
-            <TextField
-              className="flex-grow"
-              value={filter}
-              onChange={(_, value) => setFilter(value ?? '')}
-              placeholder="Filter branches… (* = wildcard)"
-            />
+        title={
+          <div className="flex-row flex-center rhythm-horizontal-8">
+            My Branches
             <Pill size={PillSize.compact} variant={PillVariant.outlined}>
               {countLabel}
             </Pill>
           </div>
+        }
+        titleSize={TitleSize.Large}
+      />
+      <div className="page-content flex-grow flex-column">
+        <TextField
+          className="margin-bottom-8"
+          value={filter}
+          onChange={(_, value) => setFilter(value ?? '')}
+          placeholder="Filter branches… (* = wildcard)"
+        />
+        <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
           {displayed.length === 0 ? (
             <ZeroData
               primaryText={
