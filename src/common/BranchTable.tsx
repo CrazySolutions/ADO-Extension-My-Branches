@@ -181,7 +181,7 @@ export function BranchTable({ branches, collectionUri, showProjectColumn, onNavi
       <Header
         title={
           <div className="flex-row flex-center rhythm-horizontal-8">
-            My Branches
+            <span>My Branches</span>
             <Pill size={PillSize.compact} variant={PillVariant.outlined}>
               {countLabel}
             </Pill>
@@ -189,9 +189,9 @@ export function BranchTable({ branches, collectionUri, showProjectColumn, onNavi
         }
         titleSize={TitleSize.Large}
       />
-      <div className="page-content flex-grow flex-column">
+      <div className="page-content page-content-top flex-grow flex-column">
         <TextField
-          className="margin-bottom-8"
+          className="margin-bottom-16"
           value={filter}
           onChange={(_, value) => setFilter(value ?? '')}
           placeholder="Filter branches… (* = wildcard)"
