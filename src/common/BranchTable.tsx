@@ -16,6 +16,7 @@ import 'azure-devops-ui/Core/override.css';
 import 'azure-devops-ui/Core/core.css';
 import 'azure-devops-ui/Components/Card/Card.css';
 import 'azure-devops-ui/Components/Header/Header.css';
+import 'azure-devops-ui/Components/Page/Page.css';
 import 'azure-devops-ui/Components/Link/Link.css';
 import 'azure-devops-ui/Components/MessageCard/MessageCard.css';
 import 'azure-devops-ui/Components/Pill/Pill.css';
@@ -176,7 +177,7 @@ export function BranchTable({ branches, collectionUri, showProjectColumn, onNavi
       : `${displayed.length} of ${branches.length}`;
 
   return (
-    <div className="flex-grow flex-column">
+    <div className="bolt-page flex-grow flex-column">
       <Header
         title={
           <div className="flex-row flex-center rhythm-horizontal-8">
