@@ -231,9 +231,9 @@ export function BranchTable({ branches, collectionUri, showProjectColumn, onNavi
           onChange={(_, value) => setFilter(value ?? '')}
           placeholder="Filter branches… (* = wildcard)"
         />
-        <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
+        <Card className="flex-column bolt-table-card" contentProps={{ contentPadding: false, className: 'flex-grow flex-column scroll-hidden' }}>
           {displayed.length === 0 ? (
-            <div className="flex-grow flex-column flex-center justify-center secondary-text body-l">
+            <div className="secondary-text body-m padding-16">
               {filter ? `No branches match "${filter}"` : 'You have no branches.'}
             </div>
           ) : (
@@ -241,6 +241,7 @@ export function BranchTable({ branches, collectionUri, showProjectColumn, onNavi
               behaviors={[sorting.current]}
               columns={columns}
               itemProvider={itemProvider}
+              scrollable
               onActivate={(_, row) => {
                 const item = row.data;
                 if (item) onNavigate(branchUrl(collectionUri, item.projectName, item.repositoryName, item.name));
